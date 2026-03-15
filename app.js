@@ -92,19 +92,23 @@ function getProducts() {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      // Auto-refresh: if any default product has an empty image, reload defaults
-      const hasEmptyImages = parsed.some(p =>
-        DEFAULT_PRODUCTS.find(d => d.id === p.id) && !p.image
+      // Auto-refresh: only update images on default products if they're missing
+      // NEVER remove or overwrite admin-added products (those have Date.now() IDs)
+      const defaultIds = DEFAULT_PRODUCTS.map(d => d.id); // [1,2,3,4,5,6,7,8]
+      const needsRefresh = parsed.some(p =>
+        defaultIds.includes(p.id) && !p.image
       );
-      if (hasEmptyImages) {
-        // Merge: keep admin-added products, refresh default ones with new images
-        const adminAdded = parsed.filter(p => !DEFAULT_PRODUCTS.find(d => d.id === p.id));
+      if (needsRefresh) {
+        // Keep admin-added products intact, just update default ones
+        const adminAdded = parsed.filter(p => !defaultIds.includes(p.id));
         const merged = [...DEFAULT_PRODUCTS, ...adminAdded];
         localStorage.setItem('dms_products', JSON.stringify(merged));
         return merged;
       }
       return parsed;
-    } catch(e) {}
+    } catch(e) {
+      // Corrupted data – reset to defaults
+    }
   }
   localStorage.setItem('dms_products', JSON.stringify(DEFAULT_PRODUCTS));
   return DEFAULT_PRODUCTS;
@@ -452,39 +456,51 @@ function initAdminPage() {
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-    const products = getProducts();
-    const name = document.getElementById('productName').value.trim();
+    e.stopPropagation();
+
+    const name     = document.getElementById('productName').value.trim();
     const category = document.getElementById('productCategory').value;
-    const price = parseInt(document.getElementById('productPrice').value);
-    const badge = document.getElementById('productBadge').value.trim();
+    const price    = parseInt(document.getElementById('productPrice').value, 10);
+    const badge    = document.getElementById('productBadge').value.trim();
     const features = document.getElementById('productFeatures').value.trim()
       .split(',').map(f => f.trim()).filter(Boolean);
     const description = document.getElementById('productDesc').value.trim();
 
-    // Handle image
+    // Validate required fields manually
+    if (!name || !category || !price) {
+      alert('Please fill in the Product Name, Category and Price fields.');
+      return;
+    }
+
+    function saveNewProduct(imageData) {
+      // Always read fresh from localStorage at save time
+      const current = getProducts();
+      const newProduct = {
+        id: Date.now(),
+        name, category, price, badge, features, description,
+        image: imageData || ''
+      };
+      current.push(newProduct);
+      saveProducts(current);
+      form.reset();
+      if (imgPreview) imgPreview.innerHTML = `<div class="image-upload-placeholder"><i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:var(--border-gold);display:block;margin-bottom:0.5rem"></i>Click to upload product image</div>`;
+      renderAdminList();
+      if (successMsg) {
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 4000);
+      }
+      // Scroll to success message
+      if (successMsg) successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     const imgFile = imgInput && imgInput.files[0];
     if (imgFile) {
       const reader = new FileReader();
-      reader.onload = function(ev) {
-        const newProduct = {
-          id: Date.now(), name, category, price, badge, features, description,
-          image: ev.target.result
-        };
-        products.push(newProduct);
-        saveProducts(products);
-        form.reset();
-        if (imgPreview) imgPreview.innerHTML = `<div class="image-upload-placeholder"><i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:var(--border-gold);display:block;margin-bottom:0.5rem"></i>Click to upload product image</div>`;
-        renderAdminList();
-        if (successMsg) { successMsg.classList.add('show'); setTimeout(() => successMsg.classList.remove('show'), 3000); }
-      };
+      reader.onload = function(ev) { saveNewProduct(ev.target.result); };
+      reader.onerror = function() { saveNewProduct(''); };
       reader.readAsDataURL(imgFile);
     } else {
-      const newProduct = { id: Date.now(), name, category, price, badge, features, description, image: '' };
-      products.push(newProduct);
-      saveProducts(products);
-      form.reset();
-      renderAdminList();
-      if (successMsg) { successMsg.classList.add('show'); setTimeout(() => successMsg.classList.remove('show'), 3000); }
+      saveNewProduct('');
     }
   });
 }
