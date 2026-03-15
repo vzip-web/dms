@@ -45,16 +45,17 @@ img { max-width: 100%; display: block; }
   position: fixed; inset: 0; z-index: 9999;
   background: var(--green-deep);
   display: flex; align-items: center; justify-content: center;
+  min-height: 100svh;
   transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 #loading-screen.hidden { opacity: 0; visibility: hidden; }
-.loader-content { text-align: center; z-index: 2; }
+.loader-content { text-align: center; z-index: 2; padding: 0 1.5rem; width: 100%; }
 .loader-logo {
   font-family: var(--font-serif);
   font-size: clamp(3rem, 10vw, 6rem);
   font-weight: 800;
   letter-spacing: 0.3em;
-  display: flex; gap: 0.1em;
+  display: flex; gap: 0.1em; justify-content: center;
 }
 .logo-d { color: var(--gold); animation: logoPop 0.6s 0.2s both; }
 .logo-m { color: var(--gold-light); animation: logoPop 0.6s 0.4s both; }
@@ -870,18 +871,66 @@ img { max-width: 100%; display: block; }
   .order-methods { justify-content: center; }
   .footer-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
-  .hero-section { padding: 7rem 1.5rem 4rem; }
+  /* Reduce hero top padding to remove large blank area on mobile */
+  .hero-section { padding: 5.5rem 1.5rem 3.5rem; min-height: 100svh; }
   .section { padding: 4rem 1.5rem; }
   .fab-group { bottom: 1.5rem; right: 1.5rem; }
   .admin-form-wrap { padding: 1.5rem; }
   .contact-form { padding: 1.5rem; }
   .about-story-grid { gap: 2rem; }
+  /* Hide the hero WhatsApp CTA on mobile — FAB already handles it */
+  .btn-whatsapp { display: none; }
+  /* Ensure mobile menu sits above everything else */
+  .mobile-menu { position: relative; z-index: 1001; }
+  /* 2-column product grid on tablet/large mobile */
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .why-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  /* Compact cards */
+  .product-info { padding: 1rem; }
+  .product-name { font-size: 1rem; }
+  .price-amount { font-size: 1.2rem; }
 }
 @media (max-width: 480px) {
-  .products-grid { grid-template-columns: 1fr; }
-  .why-grid { grid-template-columns: 1fr; }
+  /* Keep 2-column grid — much better than 1 huge card */
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .why-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
   .hero-ctas { flex-direction: column; align-items: center; }
   .order-methods { flex-direction: column; align-items: stretch; }
   .hero-title { font-size: clamp(2rem, 9vw, 3rem); }
   .nav-container { padding: 1rem 1.2rem; }
+  /* Further reduce hero top padding on small phones */
+  .hero-section { padding: 4.5rem 1.2rem 3rem; }
+  /* Fix mobile-menu WhatsApp button width */
+  .mobile-order { display: flex !important; justify-content: center; align-items: center; gap: 0.6rem; }
+  /* Ensure hero badge wraps nicely */
+  .hero-badge { font-size: 0.75rem; padding: 0.4rem 0.9rem; text-align: center; }
+  /* Make FABs slightly smaller on very small screens */
+  .fab { width: 50px; height: 50px; font-size: 1.2rem; }
+
+  /* === COMPACT PRODUCT CARD for small phones === */
+  .product-card { border-radius: 14px; }
+  /* Shorter image so more info fits  */
+  .product-img-wrap { aspect-ratio: 4/3; }
+  /* Tighter badge */
+  .product-badge { top: 0.5rem; left: 0.5rem; font-size: 0.6rem; padding: 0.18rem 0.5rem; }
+  /* Compact info block */
+  .product-info { padding: 0.65rem 0.7rem 0.75rem; }
+  .product-category { font-size: 0.62rem; margin-bottom: 0.25rem; }
+  .product-name { font-size: 0.82rem; margin-bottom: 0.3rem; line-height: 1.25; }
+  /* Hide feature tags — no room on small cards */
+  .product-features { display: none; }
+  /* Compact price row */
+  .product-price { margin-bottom: 0.5rem; flex-direction: column; align-items: flex-start; gap: 0.1rem; }
+  .price-label { font-size: 0.65rem; }
+  .price-amount { font-size: 1rem; }
+  .price-currency { font-size: 0.75rem; }
+  /* Compact order buttons */
+  .product-order-btns { gap: 0.3rem; }
+  .btn-order-wa { padding: 0.45rem 0.5rem; font-size: 0.72rem; border-radius: 8px; gap: 0.25rem; }
+  .btn-order-call { padding: 0.45rem 0.55rem; font-size: 0.72rem; border-radius: 8px; }
+  /* Compact why cards */
+  .why-card { padding: 1.2rem 1rem; }
+  .why-icon { width: 48px; height: 48px; font-size: 1.1rem; margin-bottom: 0.8rem; }
+  .why-card h3 { font-size: 0.95rem; }
+  .why-card p { font-size: 0.8rem; }
 }
